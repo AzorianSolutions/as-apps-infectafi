@@ -1,0 +1,17 @@
+{
+  "repositories": [
+	{
+	  "type": "path",
+	  "url": "./packages/spidermatt/infectafi",
+	  "options": {
+		"symlink": true
+	  }
+	}
+  ],
+  "require": {
+	"mongodb/mongodb": "^1.4",
+	"monolog/monolog": "^2.0",
+	"purekid/mongodm": "dev-master",
+	"spidermatt/infectafi": "@dev"
+  }
+}

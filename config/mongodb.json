@@ -1,0 +1,13 @@
+{
+  "default": {
+	"connection": {
+	  "hostnames": "mongo",
+	  "database": "infectafi",
+	  "username": "root",
+	  "password": "sundown2",
+	  "options": {
+		"authSource": "admin"
+	  }
+	}
+  }
+}

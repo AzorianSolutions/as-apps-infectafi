@@ -1,0 +1,19 @@
+{
+    "name": "spidermatt/infectafi",
+    "description": "Wi-Fi Deauthentication Attack App that stalks specific prey and all associates.",
+    "keywords": ["infectafi", "spidermatt", "wifi", "hacking", "deauth", "deauthentication", "attack", "radio", "wi-fi"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matt Scott",
+            "email": "spidermattx@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {"Spidermatt\\Infectafi\\": "src/Infectafi"}
+    }
+}

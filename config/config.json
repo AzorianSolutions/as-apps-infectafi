@@ -1,0 +1,47 @@
+{
+  "debug": true,
+  "adapter": "wlx00c0caaaf863",
+  "data_path": "data",
+  "tmp_path": "tmp",
+  "db": {
+	"name": "infectafi",
+	"url": "mongodb://root:sundown2@localhost:27017"
+  },
+  "config_revision" : 1,
+  "service": {
+	"debug": true,
+	"restartDelay": {
+	  "afterComplete": 15,
+	  "afterError": 5
+	}
+  },
+  "logging": {
+	"prefix": "infectafi",
+	"output": {
+	  "file": {
+		"path": "service.log",
+		"level": 400
+	  },
+	  "stdout": {
+		"level": 100
+	  }
+	},
+	"level": {
+	  "prod": 400,
+	  "stage": 200,
+	  "dev": 100
+	}
+  },
+  "scan": {
+	"log_level": 0,
+	"buffer_file": "infectafi-scan-buffer",
+	"limit": 300
+  },
+  "attack": {
+	"log_level": 0,
+	"limit": 300,
+	"intervalFloor": 30,
+	"intervalCeiling": 120,
+	"attack_inactivity_ceil": 360
+  }
+}
