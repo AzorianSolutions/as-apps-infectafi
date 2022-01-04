@@ -1,0 +1,7 @@
+#!/bin/bash
+ip link set $1 down
+iwconfig $1 mode monitor
+ip link set $1 up
+#iw wlx00c0caaaf863 set channel 6 HT40-
+#iw wlx00c0caaaf863 set freq 5745 80 5775
+iw $1 set txpower fixed 3000
